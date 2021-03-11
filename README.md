@@ -7,7 +7,7 @@ This is [a port of the VapourSynth plugin TEdgeMask](https://github.com/dubhater
 # Usage
 
 ```
-vsTEdgeMask (clip, float "threshY", float "threshU", float "threshV", int "type", int "link, float "scale", int "y", int "u", int "v", int "opt")
+vsTEdgeMask (clip, float "threshY", float "threshU", float "threshV", int "type", int "link", float "scale", int "y", int "u", int "v", int "opt")
 ```
 
 ## Parameters:
