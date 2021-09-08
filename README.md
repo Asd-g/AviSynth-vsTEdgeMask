@@ -1,16 +1,22 @@
-# Description
+## Description
 
 Builds an edge map using canny edge detection.
 
 This is [a port of the VapourSynth plugin TEdgeMask](https://github.com/dubhater/vapoursynth-tedgemask).
 
-# Usage
+### Requirements:
+
+- AviSynth 2.60 / AviSynth+ 3.4 or later
+
+- Microsoft VisualC++ Redistributable Package 2022 (can be downloaded from [here](https://github.com/abbodi1406/vcredist/releases))
+
+### Usage:
 
 ```
 vsTEdgeMask (clip, float "threshY", float "threshU", float "threshV", int "type", int "link", float "scale", int "y", int "u", int "v", int "opt")
 ```
 
-## Parameters:
+### Parameters:
 
 - clip\
     A clip to process. It must have planar format, 8..16 bit integer sample type, and subsampling ratios of at most 2.
@@ -58,27 +64,24 @@ vsTEdgeMask (clip, float "threshY", float "threshU", float "threshV", int "type"
     1: Use SSE2 code.\
     Default: -1.
     
-# Building
+### Building:
 
-## Windows
+- Windows\
+    Use solution files.
 
-Use solution files.
-
-## Linux
-
-### Requirements
-
-- Git
-- C++11 compiler
-- CMake >= 3.16
-
-```
-git clone https://github.com/Asd-g/AviSynth-vsTEdgeMask && \
-cd AviSynth-vsTEdgeMask && \
-mkdir build && \
-cd build && \
-cmake .. && \
-make -j$(nproc) && \
-sudo make install
-```
-
+- Linux
+    ```
+    Requirements:
+        - Git
+        - C++11 compiler
+        - CMake >= 3.16
+    ```
+    ```
+    git clone https://github.com/Asd-g/AviSynth-vsTEdgeMask && \
+    cd AviSynth-vsTEdgeMask && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make -j$(nproc) && \
+    sudo make install
+    ```
