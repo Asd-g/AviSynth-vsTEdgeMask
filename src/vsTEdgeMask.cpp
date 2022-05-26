@@ -11,10 +11,10 @@ enum LinkModes
 };
 
 template<typename PixelType, MaskTypes type, bool binarize>
-static void detect_edges_scalar(const uint8_t* srcp8, uint8_t* dstp8, int stride, int dst_stride, int width, int height, int64_t threshold64, float scale, int pixel_max)
+static void detect_edges_scalar(const uint8_t* srcp8, uint8_t* __restrict dstp8, int stride, int dst_stride, int width, int height, int64_t threshold64, float scale, int pixel_max) noexcept
 {
     const PixelType* srcp = reinterpret_cast<const PixelType*>(srcp8);
-    PixelType* dstp = reinterpret_cast<PixelType*>(dstp8);
+    PixelType* __restrict dstp = reinterpret_cast<PixelType*>(dstp8);
     stride /= sizeof(PixelType);
     dst_stride /= sizeof(PixelType);
     width /= sizeof(PixelType);
@@ -48,13 +48,13 @@ static void detect_edges_scalar(const uint8_t* srcp8, uint8_t* dstp8, int stride
             int right = srcp[x + 1];
             int bottom = srcp[x + stride];
 
-            if (type == TwoPixel)
+            if constexpr (type == TwoPixel)
             {
                 gx = static_cast<int64_t>(right) - left;
                 gy = static_cast<int64_t>(top) - bottom;
                 divisor = 0.25f;
             }
-            else if (type == FourPixel)
+            else if constexpr (type == FourPixel)
             {
                 int top2 = srcp[x - 2 * stride];
                 int left2 = srcp[x - 2];
@@ -65,7 +65,7 @@ static void detect_edges_scalar(const uint8_t* srcp8, uint8_t* dstp8, int stride
                 gy = 12 * (static_cast<int64_t>(bottom2) - top2) + 74 * (static_cast<int64_t>(top) - bottom);
                 divisor = 0.0001f;
             }
-            else if (type == SixPixel)
+            else if constexpr (type == SixPixel)
             {
                 int top_left = srcp[x - stride - 1];
                 int top_right = srcp[x - stride + 1];
@@ -79,7 +79,7 @@ static void detect_edges_scalar(const uint8_t* srcp8, uint8_t* dstp8, int stride
 
             int32_or_64 sum_squares = gx * gx + gy * gy;
 
-            if (binarize)
+            if constexpr (binarize)
                 dstp[x] = (sum_squares > threshold) ? pixel_max : 0;
             else
                 dstp[x] = std::min((int)(std::sqrt(sum_squares * divisor) * scale + 0.5f), pixel_max);
@@ -101,14 +101,14 @@ static void detect_edges_scalar(const uint8_t* srcp8, uint8_t* dstp8, int stride
 }
 
 template<typename PixelType, LinkModes link>
-static void link_planes_444_scalar(uint8_t* dstp18, uint8_t* dstp28, uint8_t* dstp38, int stride1, int stride2, int width, int height, int pixel_max)
+static void link_planes_444_scalar(uint8_t* __restrict dstp18, uint8_t* __restrict dstp28, uint8_t* __restrict dstp38, int stride1, int stride2, int width, int height, int pixel_max) noexcept
 {
-    (void)stride2;
-    (void)pixel_max;
+    static_cast<void>(stride2);
+    static_cast<void>(pixel_max);
 
-    PixelType* dstp1 = reinterpret_cast<PixelType*>(dstp18);
-    PixelType* dstp2 = reinterpret_cast<PixelType*>(dstp28);
-    PixelType* dstp3 = reinterpret_cast<PixelType*>(dstp38);
+    PixelType* __restrict dstp1 = reinterpret_cast<PixelType*>(dstp18);
+    PixelType* __restrict dstp2 = reinterpret_cast<PixelType*>(dstp28);
+    PixelType* __restrict dstp3 = reinterpret_cast<PixelType*>(dstp38);
     stride1 /= sizeof(PixelType);
     width /= sizeof(PixelType);
 
@@ -119,7 +119,7 @@ static void link_planes_444_scalar(uint8_t* dstp18, uint8_t* dstp28, uint8_t* ds
         {
             PixelType val = dstp1[x];
 
-            if (link == LinkEverything)
+            if constexpr (link == LinkEverything)
             {
                 val |= dstp2[x] | dstp3[x];
 
@@ -138,13 +138,13 @@ static void link_planes_444_scalar(uint8_t* dstp18, uint8_t* dstp28, uint8_t* ds
 }
 
 template<typename PixelType, LinkModes link>
-static void link_planes_422_scalar(uint8_t* dstp18, uint8_t* dstp28, uint8_t* dstp38, int stride1, int stride2, int width, int height, int pixel_max)
+static void link_planes_422_scalar(uint8_t* __restrict dstp18, uint8_t* __restrict dstp28, uint8_t* __restrict dstp38, int stride1, int stride2, int width, int height, int pixel_max) noexcept
 {
-    (void)pixel_max;
+    static_cast<void>(pixel_max);
 
-    PixelType* dstp1 = reinterpret_cast<PixelType*>(dstp18);
-    PixelType* dstp2 = reinterpret_cast<PixelType*>(dstp28);
-    PixelType* dstp3 = reinterpret_cast<PixelType*>(dstp38);
+    PixelType* __restrict dstp1 = reinterpret_cast<PixelType*>(dstp18);
+    PixelType* __restrict dstp2 = reinterpret_cast<PixelType*>(dstp28);
+    PixelType* __restrict dstp3 = reinterpret_cast<PixelType*>(dstp38);
     stride1 /= sizeof(PixelType);
     stride2 /= sizeof(PixelType);
     width /= sizeof(PixelType);
@@ -155,7 +155,7 @@ static void link_planes_422_scalar(uint8_t* dstp18, uint8_t* dstp28, uint8_t* ds
         {
             PixelType val = dstp1[x] & dstp1[x + 1];
 
-            if (link == LinkEverything)
+            if constexpr (link == LinkEverything)
             {
                 val |= dstp2[x >> 1] | dstp3[x >> 1];
 
@@ -174,14 +174,14 @@ static void link_planes_422_scalar(uint8_t* dstp18, uint8_t* dstp28, uint8_t* ds
 }
 
 template<typename PixelType, LinkModes link>
-static void link_planes_440_scalar(uint8_t* dstp18, uint8_t* dstp28, uint8_t* dstp38, int stride1, int stride2, int width, int height, int pixel_max)
+static void link_planes_440_scalar(uint8_t* __restrict dstp18, uint8_t* __restrict dstp28, uint8_t* __restrict dstp38, int stride1, int stride2, int width, int height, int pixel_max) noexcept
 {
-    (void)stride2;
-    (void)pixel_max;
+    static_cast<void>(stride2);
+    static_cast<void>(pixel_max);
 
-    PixelType* dstp1 = reinterpret_cast<PixelType*>(dstp18);
-    PixelType* dstp2 = reinterpret_cast<PixelType*>(dstp28);
-    PixelType* dstp3 = reinterpret_cast<PixelType*>(dstp38);
+    PixelType* __restrict dstp1 = reinterpret_cast<PixelType*>(dstp18);
+    PixelType* __restrict dstp2 = reinterpret_cast<PixelType*>(dstp28);
+    PixelType* __restrict dstp3 = reinterpret_cast<PixelType*>(dstp38);
     stride1 /= sizeof(PixelType);
     width /= sizeof(PixelType);
 
@@ -191,7 +191,7 @@ static void link_planes_440_scalar(uint8_t* dstp18, uint8_t* dstp28, uint8_t* ds
         {
             PixelType val = dstp1[x] & dstp1[x + stride1];
 
-            if (link == LinkEverything)
+            if constexpr (link == LinkEverything)
             {
                 val |= dstp2[x] | dstp3[x];
 
@@ -210,11 +210,11 @@ static void link_planes_440_scalar(uint8_t* dstp18, uint8_t* dstp28, uint8_t* ds
 }
 
 template<typename PixelType, LinkModes link>
-static void link_planes_420_scalar(uint8_t* dstp18, uint8_t* dstp28, uint8_t* dstp38, int stride1, int stride2, int width, int height, int pixel_max)
+static void link_planes_420_scalar(uint8_t* __restrict dstp18, uint8_t* __restrict dstp28, uint8_t* __restrict dstp38, int stride1, int stride2, int width, int height, int pixel_max) noexcept
 {
-    PixelType* dstp1 = reinterpret_cast<PixelType*>(dstp18);
-    PixelType* dstp2 = reinterpret_cast<PixelType*>(dstp28);
-    PixelType* dstp3 = reinterpret_cast<PixelType*>(dstp38);
+    PixelType* __restrict dstp1 = reinterpret_cast<PixelType*>(dstp18);
+    PixelType* __restrict dstp2 = reinterpret_cast<PixelType*>(dstp28);
+    PixelType* __restrict dstp3 = reinterpret_cast<PixelType*>(dstp38);
     stride1 /= sizeof(PixelType);
     stride2 /= sizeof(PixelType);
     width /= sizeof(PixelType);
@@ -234,7 +234,7 @@ static void link_planes_420_scalar(uint8_t* dstp18, uint8_t* dstp28, uint8_t* ds
             if (dstp1[x + stride1 + 1])
                 ++sum;
 
-            if (link == LinkEverything)
+            if constexpr (link == LinkEverything)
             {
                 if (dstp2[x >> 1])
                     sum += 2;
@@ -285,14 +285,18 @@ vsTEdgeMask::vsTEdgeMask(PClip _child, double threshY, double threshU, double th
 
     if (_link < 0 || _link > 2)
         env->ThrowError("vsTEdgeMask: link must be 0, 1, or 2.");
-    if (_link == LinkChromaToLuma && vi.IsRGB()) 
+    if (_link == LinkChromaToLuma && vi.IsRGB())
         env->ThrowError("vsTEdgeMask: link must be 0 or 2 when clip is RGB.");
     if (_scale < 0.0f)
         env->ThrowError("vsTEdgeMask: scale must not be negative.");
-    if (opt > 1 || opt < -1)
-        env->ThrowError("vsTEdgeMask: opt msut be between -1..1.");
+    if (opt > 3 || opt < -1)
+        env->ThrowError("vsTEdgeMask: opt msut be between -1..3.");
     if (opt == 1 && !(env->GetCPUFlags() & CPUF_SSE2))
         env->ThrowError("vsTEdgeMask: opt=1 requires SSE2.");
+    if (opt == 2 && !(env->GetCPUFlags() & CPUF_AVX2))
+        env->ThrowError("vsTEdgeMask: opt=2 requires AVX2.");
+    if (opt == 3 && !(env->GetCPUFlags() & CPUF_AVX512F))
+        env->ThrowError("vsTEdgeMask: opt=3 requires AVX512F.");
     if (y < 1 || y > 3)
         env->ThrowError("vsTEdgeMask: y must be between 1..3.");
     if (u < 1 || u > 3)
@@ -343,10 +347,102 @@ vsTEdgeMask::vsTEdgeMask(PClip _child, double threshY, double threshU, double th
         _scale *= 0.25;
 
     const bool sse2 = (!!(env->GetCPUFlags() & CPUF_SSE2) && opt < 0) || opt == 1;
+    const bool avx2 = (!!(env->GetCPUFlags() & CPUF_AVX2) && opt < 0) || opt == 2;
+    const bool avx512 = (!!(env->GetCPUFlags() & CPUF_AVX512F) && opt < 0) || opt == 3;
 
     for (int plane = 0; plane < vi.NumComponents(); ++plane)
     {
-        if (sse2)
+        if (avx512)
+        {
+            if (bits == 8)
+            {
+                if (_threshold[plane] == 0)
+                {
+                    switch (type)
+                    {
+                        case TwoPixel: detect_edges[plane] = detect_edges_avx512<uint8_t, TwoPixel, false>; break;
+                        case FourPixel: detect_edges[plane] = detect_edges_avx512<uint8_t, FourPixel, false>; break;
+                        case SixPixel: detect_edges[plane] = detect_edges_avx512<uint8_t, SixPixel, false>; break;
+                    }
+                }
+                else
+                {
+                    switch (type)
+                    {
+                        case TwoPixel: detect_edges[plane] = detect_edges_avx512<uint8_t, TwoPixel, true>; break;
+                        case FourPixel: detect_edges[plane] = detect_edges_avx512<uint8_t, FourPixel, true>; break;
+                        case SixPixel: detect_edges[plane] = detect_edges_avx512<uint8_t, SixPixel, true>; break;
+                    }
+                }
+            }
+            else
+            {
+                if (_threshold[plane] == 0)
+                {
+                    switch (type)
+                    {
+                        case TwoPixel: detect_edges[plane] = detect_edges_avx512<uint16_t, TwoPixel, false>; break;
+                        case FourPixel: detect_edges[plane] = detect_edges_avx512<uint16_t, FourPixel, false>; break;
+                        case SixPixel: detect_edges[plane] = detect_edges_avx512<uint16_t, SixPixel, false>; break;
+                    }
+                }
+                else
+                {
+                    switch (type)
+                    {
+                        case TwoPixel: detect_edges[plane] = detect_edges_avx512<uint16_t, TwoPixel, true>; break;
+                        case FourPixel: detect_edges[plane] = detect_edges_avx512<uint16_t, FourPixel, true>; break;
+                        case SixPixel: detect_edges[plane] = detect_edges_avx512<uint16_t, SixPixel, true>; break;
+                    }
+                }
+            }
+        }
+        else if (avx2)
+        {
+            if (bits == 8)
+            {
+                if (_threshold[plane] == 0)
+                {
+                    switch (type)
+                    {
+                        case TwoPixel: detect_edges[plane] = detect_edges_avx2<uint8_t, TwoPixel, false>; break;
+                        case FourPixel: detect_edges[plane] = detect_edges_avx2<uint8_t, FourPixel, false>; break;
+                        case SixPixel: detect_edges[plane] = detect_edges_avx2<uint8_t, SixPixel, false>; break;
+                    }
+                }
+                else
+                {
+                    switch (type)
+                    {
+                        case TwoPixel: detect_edges[plane] = detect_edges_avx2<uint8_t, TwoPixel, true>; break;
+                        case FourPixel: detect_edges[plane] = detect_edges_avx2<uint8_t, FourPixel, true>; break;
+                        case SixPixel: detect_edges[plane] = detect_edges_avx2<uint8_t, SixPixel, true>; break;
+                    }
+                }
+            }
+            else
+            {
+                if (_threshold[plane] == 0)
+                {
+                    switch (type)
+                    {
+                        case TwoPixel: detect_edges[plane] = detect_edges_avx2<uint16_t, TwoPixel, false>; break;
+                        case FourPixel: detect_edges[plane] = detect_edges_avx2<uint16_t, FourPixel, false>; break;
+                        case SixPixel: detect_edges[plane] = detect_edges_avx2<uint16_t, SixPixel, false>; break;
+                    }
+                }
+                else
+                {
+                    switch (type)
+                    {
+                        case TwoPixel: detect_edges[plane] = detect_edges_avx2<uint16_t, TwoPixel, true>; break;
+                        case FourPixel: detect_edges[plane] = detect_edges_avx2<uint16_t, FourPixel, true>; break;
+                        case SixPixel: detect_edges[plane] = detect_edges_avx2<uint16_t, SixPixel, true>; break;
+                    }
+                }
+            }
+        }
+        else if (sse2)
         {
             if (bits == 8)
             {
@@ -537,7 +633,7 @@ PVideoFrame __stdcall vsTEdgeMask::GetFrame(int n, IScriptEnvironment* env)
             int width = src->GetRowSize(plane);
             const int height = src->GetHeight(plane);
             const uint8_t* srcp = src->GetReadPtr(plane);
-            uint8_t* dstp = dst->GetWritePtr(plane);
+            uint8_t* __restrict dstp = dst->GetWritePtr(plane);
 
             if (process[i] == 3)
                 detect_edges[i](srcp, dstp, stride, dst_stride, width, height, _threshold[i], _scale, pixel_max);

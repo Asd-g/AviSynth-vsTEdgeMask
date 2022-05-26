@@ -21,6 +21,12 @@
     <ClCompile Include="..\src\vsTEdgeMask_SSE2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vsTEdgeMask_AVX2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vsTEdgeMask_AVX512.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\vsTEdgeMask.h">
