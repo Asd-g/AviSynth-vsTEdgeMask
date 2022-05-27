@@ -20,7 +20,7 @@ vsTEdgeMask (clip, float "threshY", float "threshU", float "threshV", int "type"
 
 - clip\
     A clip to process. It must have planar format, 8..16 bit integer sample type, and subsampling ratios of at most 2.
-    
+
 - threshY, threshU, threshV\
     Sets the magnitude thresholds.\
     If over this value then a sample will be considered an edge, and the output pixel will be set to the maximum value allowed by the format. Otherwise the output pixel will be set to 0.\
@@ -35,7 +35,7 @@ vsTEdgeMask (clip, float "threshY", float "threshU", float "threshV", int "type"
     4: Same as type = 2.\
     5: 6 pixel (Sobel operator).\
     Default: 2.
-    
+
 - link\
     Specifies whether luma to chroma linking, no linking, or linking of every plane to every other plane is used.\
     0: No linking. The three edge masks are completely independent.\
@@ -44,26 +44,28 @@ vsTEdgeMask (clip, float "threshY", float "threshU", float "threshV", int "type"
     This parameter has no effect when clip has only one plane, when any plane's threshold is 0, or when some planes are not processed.\
     This parameter can only be 0 or 2 when clip is RGB.\
     Default: 2 when clip is RGB, otherwise 1.
-    
+
 - scale\
     If the output is a magnitude mask (threshold is 0), it is scaled by this value.\
     Note that in TEMmod this parameter had three different, undocumented default values for the different mask types, which made it difficult to use the parameter without reading the source code.\
     Default: 1.0.
-    
+
 - y, u, v\
     Planes to process.\
     1: Return garbage.\
     2: Copy plane.\
     3: Process plane. Always process planes when clip is RGB.\
     Default: y = u = v = 3.
-    
+
 - opt\
     Sets which cpu optimizations to use.\
     -1: Auto-detect.\
     0: Use C++ code.\
     1: Use SSE2 code.\
+    2: Use AVX2 code.\
+    3: Use AVX512 code.\
     Default: -1.
-    
+
 ### Building:
 
 - Windows\
