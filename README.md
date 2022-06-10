@@ -75,7 +75,7 @@ vsTEdgeMask (clip, float "threshY", float "threshU", float "threshV", int "type"
     ```
     Requirements:
         - Git
-        - C++11 compiler
+        - C++17 compiler
         - CMake >= 3.16
     ```
     ```
